@@ -54,6 +54,20 @@ El script:
 
 ---
 
+
+## Uso de `wakeonlan` o `etherwake`
+
+Estas herramientas se utilizan para enviar el **Magic Packet** necesario para activar Wake-on-LAN.
+
+### ¿Por qué `wakeonlan`?
+
+- Es simple y portable.
+- No requiere especificar interfaz manualmente.
+- Fácil de integrar en scripts.
+
+
+
+```bash
 ## 4. Variables Configurables
 
 ```bash
@@ -65,20 +79,3 @@ WAIT_TIME=60
 MAX_RETRIES=3
 LOG_FILE="/var/log/wol_automation.log"
 # Justificación Técnica de Herramientas – Script Wake-on-LAN para Servidores Linux
-
----
-
-## 2. Uso de `wakeonlan` o `etherwake`
-
-Estas herramientas se utilizan para enviar el **Magic Packet** necesario para activar Wake-on-LAN.
-
-### ¿Por qué `wakeonlan`?
-
-- Es simple y portable.
-- No requiere especificar interfaz manualmente.
-- Fácil de integrar en scripts.
-
-Ejemplo:
-
-```bash
-wakeonlan 00:1A:2B:3C:4D:5E
