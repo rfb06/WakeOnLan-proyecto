@@ -1,54 +1,66 @@
 # WakeOnLan-proyecto
-Power on LAN para maquinas del servidor para el proyecto
-graph TD
-    A[Inicio] --> B{Validar Argumentos}
-    B -->|Inválidos| C[Mostrar Error y Uso]
-    C --> Z[Exit 1]
-    B -->|--help| D[Mostrar Ayuda]
-    D --> Y[Exit 0]
-    B -->|Válidos| E[Cargar Configuración]
-    
-    E --> F{Seleccionar Acción}
-    
-    F -->|START| G[start_server]
-    F -->|STOP| H[stop_server]
-    F -->|RESTART| I[restart_server]
-    F -->|STATUS| J[status_server]
-    
-    G --> G1{Verificar Estado Actual}
-    G1 -->|Ya está ON| G2[Log: Ya encendido]
-    G2 --> Y
-    G1 -->|Está OFF| G3[Enviar Magic Packet WoL]
-    G3 --> G4[Esperar Arranque<br/>Timeout: 60s]
-    G4 --> G5{Servidor Responde?}
-    G5 -->|SÍ| G6[Log: Éxito]
-    G6 --> Y
-    G5 -->|NO| G7[Log: Error Timeout]
-    G7 --> Z
-    
-    H --> H1{Verificar Estado}
-    H1 -->|Ya está OFF| H2[Log: Ya apagado]
-    H2 --> Y
-    H1 -->|Está ON| H3[Ejecutar shutdown via SSH]
-    H3 --> H4[Esperar Apagado<br/>30s]
-    H4 --> H5{Servidor Apagado?}
-    H5 -->|SÍ| H6[Log: Apagado OK]
-    H6 --> Y
-    H5 -->|NO| H7[Log: Advertencia]
-    H7 --> X[Exit 1]
-    
-    I --> I1[Ejecutar stop_server]
-    I1 --> I2[Esperar 10s]
-    I2 --> I3[Ejecutar start_server]
-    I3 --> Y
-    
-    J --> J1[Ping Server]
-    J1 --> J2{Responde?}
-    J2 -->|SÍ| J3[SSH Check]
-    J3 --> J4{SSH OK?}
-    J4 -->|SÍ| J5[Estado: ONLINE]
-    J4 -->|NO| J6[Estado: PARCIAL]
-    J2 -->|NO| J7[Estado: OFFLINE]
-    J5 --> Y
-    J6 --> Y
-    J7 --> Y
+Wake on LAN para maquinas del servidor para el proyecto
+
+## 1. Objetivo
+
+Desarrollar un script en Bash que permita **encender automáticamente servidores Linux mediante Wake-on-LAN** cuando se detecte que:
+
+- El servidor está apagado.
+- Un servicio crítico no responde.
+- Existe una ventana programada de mantenimiento o respaldo.
+
+### Problema que resuelve
+
+En infraestructuras DevOps o entornos de laboratorio:
+
+- Los servidores pueden permanecer apagados para ahorrar energía.
+- Puede ser necesario encenderlos remotamente sin acceso físico.
+- Algunos servicios críticos pueden requerir reinicio remoto si la máquina no responde.
+
+El script automatiza el proceso de verificación y encendido sin intervención humana.
+
+---
+
+## 2. Alcance
+
+El script se ejecutará:
+
+- En un **Host Linux administrador** (máquina de control).
+- Desde una VM de Vagrant o servidor de monitoreo.
+- En la misma red LAN que los servidores objetivo.
+
+Actuará enviando paquetes mágicos WoL hacia servidores previamente configurados.
+
+### Requisitos
+
+- Wake-on-LAN habilitado en BIOS/UEFI del servidor.
+- Soporte WoL habilitado en la interfaz de red (`ethtool`).
+- Dirección MAC conocida del servidor.
+- Herramienta `wakeonlan` o `etherwake` instalada.
+
+---
+
+## 3. Descripción General del Funcionamiento
+
+El script:
+
+1. Verifica si el servidor responde a ping.
+2. Si no responde:
+   - Envía paquete WoL.
+3. Espera un tiempo determinado.
+4. Vuelve a verificar conectividad.
+5. Registra el resultado en un archivo log.
+6. Maneja errores y reintentos automáticos.
+
+---
+
+## 4. Variables Configurables
+
+```bash
+SERVER_NAME="servidor_web"
+SERVER_IP="192.168.1.50"
+SERVER_MAC="00:1A:2B:3C:4D:5E"
+PING_COUNT=3
+WAIT_TIME=60
+MAX_RETRIES=3
+LOG_FILE="/var/log/wol_automation.log"
